@@ -44,6 +44,8 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 		switch goncurses.KeyString(ch) {
 		case "q":
 			depth = false
+		case "r":
+			scr.Refresh()
 		case "down":
 			deepMenu.Driver(goncurses.REQ_DOWN)
 		case "up":
@@ -102,6 +104,8 @@ func main() {
 		switch goncurses.KeyString(ch) {
 		case "q":
 			return
+		case "r":
+			scr.Refresh()
 		case "down":
 			menu.Driver(goncurses.REQ_DOWN)
 		case "up":
