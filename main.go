@@ -63,9 +63,9 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 		}
 		switch ch {
 		case goncurses.KEY_HOME:
-			menu.Driver(goncurses.REQ_FIRST)
+			deepMenu.Driver(goncurses.REQ_FIRST)
 		case goncurses.KEY_END:
-			menu.Driver(goncurses.REQ_LAST)
+			deepMenu.Driver(goncurses.REQ_LAST)
 		}
 	}
 }
