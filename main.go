@@ -42,7 +42,7 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 		goncurses.Update()
 		ch := scr.GetChar()
 		switch goncurses.KeyString(ch) {
-		case "q":
+		case "q", "backspace":
 			depth = false
 		case "r":
 			scr.Refresh()
@@ -60,6 +60,12 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 			goncurses.Update()
 			exec.Command("mpv", "--fs", ep.Description()).Run()
 			ep.SetValue(false)
+		}
+		switch ch {
+		case goncurses.KEY_HOME:
+			menu.Driver(goncurses.REQ_FIRST)
+		case goncurses.KEY_END:
+			menu.Driver(goncurses.REQ_LAST)
 		}
 	}
 }
@@ -102,7 +108,7 @@ func main() {
 		goncurses.Update()
 		ch := scr.GetChar()
 		switch goncurses.KeyString(ch) {
-		case "q":
+		case "q", "backspace":
 			return
 		case "r":
 			scr.Refresh()
@@ -116,6 +122,12 @@ func main() {
 			menu.Driver(goncurses.REQ_PAGE_UP)
 		case "enter":
 			submenu(scr, menu)
+		}
+		switch ch {
+		case goncurses.KEY_HOME:
+			menu.Driver(goncurses.REQ_FIRST)
+		case goncurses.KEY_END:
+			menu.Driver(goncurses.REQ_LAST)
 		}
 	}
 }
