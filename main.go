@@ -36,16 +36,25 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 		return
 	}
 	defer deepMenu.Free()
+	deepBuffer := []rune("")
+	deepMenu.SetWindow(scr)
 	deepMenu.Post()
 	scr.Refresh()
 	for depth {
 		goncurses.Update()
 		ch := scr.GetChar()
-		switch goncurses.KeyString(ch) {
-		case "q", "backspace":
-			depth = false
-		case "r":
-			scr.Refresh()
+		chch := goncurses.KeyString(ch)
+		switch chch {
+		case "tab":
+			deepMenu.Driver(goncurses.REQ_NEXT_MATCH)
+		case "backspace":
+			if len(deepBuffer) > 0 {
+				deepBuffer = deepBuffer[:len(deepBuffer)-1]
+				deepMenu.SetPattern(string(deepBuffer))
+			} else {
+				depth = false
+				continue
+			}
 		case "down":
 			deepMenu.Driver(goncurses.REQ_DOWN)
 		case "up":
@@ -54,18 +63,19 @@ func submenu(scr *goncurses.Window, menu *goncurses.Menu) {
 			deepMenu.Driver(goncurses.REQ_PAGE_DOWN)
 		case "page up":
 			deepMenu.Driver(goncurses.REQ_PAGE_UP)
+		case "home":
+			deepMenu.Driver(goncurses.REQ_FIRST)
+		case "end":
+			deepMenu.Driver(goncurses.REQ_LAST)
 		case "enter":
 			ep := deepMenu.Current(nil)
 			ep.SetValue(true)
 			goncurses.Update()
 			exec.Command("mpv", "--fs", ep.Description()).Run()
 			ep.SetValue(false)
-		}
-		switch ch {
-		case goncurses.KEY_HOME:
-			deepMenu.Driver(goncurses.REQ_FIRST)
-		case goncurses.KEY_END:
-			deepMenu.Driver(goncurses.REQ_LAST)
+		default:
+			deepBuffer = append(deepBuffer, rune(ch))
+			deepMenu.SetPattern(string(deepBuffer))
 		}
 	}
 }
@@ -80,6 +90,9 @@ func main() {
 	goncurses.Cursor(0)
 	scr.Clear()
 	scr.Keypad(true)
+	scr.Print("any letter typed appends to search query\ntab goes to next matched item\nbackspace deletes the last letter or quits when query is empty\nenter, pgup, pgdown, home, end and arrows work as usual")
+	goncurses.Update()
+	scr.Refresh()
 	defer goncurses.End()
 	listHtml, err := FetchPageContents(TwistRoot)
 	if err != nil {
@@ -102,16 +115,23 @@ func main() {
 		return
 	}
 	defer menu.Free()
+	menu.SetWindow(scr)
 	menu.Post()
-	scr.Refresh()
+	buffer := []rune("")
 	for {
 		goncurses.Update()
 		ch := scr.GetChar()
-		switch goncurses.KeyString(ch) {
-		case "q", "backspace":
-			return
-		case "r":
-			scr.Refresh()
+		chch := goncurses.KeyString(ch)
+		switch chch {
+		case "tab":
+			menu.Driver(goncurses.REQ_NEXT_MATCH)
+		case "backspace":
+			if len(buffer) > 0 {
+				buffer = buffer[:len(buffer)-1]
+				menu.SetPattern(string(buffer))
+			} else {
+				return
+			}
 		case "down":
 			menu.Driver(goncurses.REQ_DOWN)
 		case "up":
@@ -122,12 +142,13 @@ func main() {
 			menu.Driver(goncurses.REQ_PAGE_UP)
 		case "enter":
 			submenu(scr, menu)
-		}
-		switch ch {
-		case goncurses.KEY_HOME:
+		case "home":
 			menu.Driver(goncurses.REQ_FIRST)
-		case goncurses.KEY_END:
+		case "end":
 			menu.Driver(goncurses.REQ_LAST)
+		default:
+			buffer = append(buffer, rune(ch))
+			menu.SetPattern(string(buffer))
 		}
 	}
 }
